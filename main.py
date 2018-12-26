@@ -9,6 +9,7 @@ import os
 from PIL import Image
 import shutil
 import threading
+from selenium import webdriver
 
 s = threading.Semaphore(3)
 
@@ -38,14 +39,16 @@ class thr_crawl(threading.Thread):
 	def run(self):
 		s.acquire()
 		self.index = 1
+		driver = self.window.get_driver()
 		for toon in self.crawl_list:
 			try:
-				imglist= self.window.toon_get_source(toon[1], 90 / (len(self.crawl_list) * (self.index * 0.1)))
+				imglist= self.window.toon_get_source(driver,toon[1], 90 / (len(self.crawl_list) * (self.index * 0.1)))
 			except:
 				self.error = 11
 				if len(self.crawl_list) == 1:
 					self.window.msg.eclose()
 					self.error = 1
+					driver.quit()
 					s.release()
 					return
 				else:
@@ -57,12 +60,14 @@ class thr_crawl(threading.Thread):
 				if len(self.crawl_list) == 1:
 					self.window.msg.eclose()
 					self.error = 2
+					driver.quit()
 					s.release()
 					return
 				else:
 					continue
 			
 			self.index += 1
+		driver.quit()
 		self.window.msg.eclose()
 		s.release()
 
@@ -150,9 +155,21 @@ class Toonkor(QMainWindow, Ui_MainWindow):
 		req = requests.get(url,verify = False ,headers = header)
 		return req
 
-	def toon_get_source(self, url, per):
-		req = self.url_parser(url)
-		soup = bs(req.text, "html.parser")
+	def get_driver(self):
+		options = webdriver.ChromeOptions()
+		options.add_argument('headless')
+		options.add_argument('window-size=1920x1080')
+		options.add_argument("disable-gpu")
+		options.add_argument("user-agent=Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/61.0.3163.100 Safari/537.36")
+		options.add_argument("lang=ko_KR")
+		driver = webdriver.Chrome("./chromedriver", chrome_options=options)
+		driver.execute_script("Object.defineProperty(navigator, 'plugins', {get: function() {return[1, 2, 3, 4, 5];},});")
+		driver.execute_script("Object.defineProperty(navigator, 'languages', {get: function() {return ['ko-KR', 'ko']}})")
+		return driver
+
+	def toon_get_source(self, driver, url, per):
+		driver.get(url)
+		soup = bs(driver.page_source, "html.parser")
 		self.progressBar.setValue(10 + per * 0.5)
 		obj = soup.find("div",{"class":"view-content scroll-viewer"})
 		taglist = obj.findAll("img")

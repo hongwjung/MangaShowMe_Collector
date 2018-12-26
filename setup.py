@@ -3,7 +3,7 @@ import sys
 
 buildOptions = dict(
 	packages = ["PyQt5","sys","bs4","requests","os",\
-    "PIL","idna.idnadata","shutil","threading","xml"], 
+    "PIL","idna.idnadata","shutil","threading","xml","selenium"], 
 	excludes = ["tkinter", "sqlite3"])
 
 base = None

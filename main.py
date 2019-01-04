@@ -226,10 +226,10 @@ class Toonkor(QMainWindow, Ui_MainWindow):
 			return
 			
 		for post in toonview_list:
-			post = post.find("a")
-			title = post.find("div",{"class":"title"}).get_text().strip() + \
+			obj = post.find("a")
+			title = obj.find("div",{"class":"title"}).get_text().strip() + \
 			"\t\t|   Date: " +  post.find("div",{"class":"addedAt"}).get_text().strip()
-			url = post.attrs['href']
+			url = obj.attrs['href']
 
 			item = QListWidgetItem(title)
 			item.setFlags(item.flags() | Qt.ItemIsUserCheckable)
